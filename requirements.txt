@@ -1,0 +1,17 @@
+==================================================
+Python Environment Information
+==================================================
+Python         : 3.11.2 (main, Oct  7 2026, 12:35:07) [GCC 12.2.0]
+NumPy          : 2.4.6
+Pandas         : 3.0.2
+Scikit-learn   : 1.9.0
+Genai          :0.8.6
+LangChain (Core)            : 1.4.6
+LangChain Google GenAI      : 4.4.2
+LangChain Community         : 0.4.2
+Google GenAI (New SDK)      : 2.31.0
+Google GenerativeAI (Legacy): 0.8.6
+ChromaDB                    : 1.5.9
+FAISS                       : 1.15.1
+PyPDF                       : 6.20.1
+==================================================
