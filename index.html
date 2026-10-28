@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecommerce RAG - Premium AI Assistant</title>
+    <!-- Modern Fonts & FontAwesome Icon Integration -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cloudflare.com">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --whatsapp-color: #25D366;
+            --bg-light: #f8fafc;
+            --chat-bg: #ffffff;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Main Chat Window Styling */
+        .app-window {
+            width: 480px;
+            height: 85vh;
+            background: var(--bg-light);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        /* Elegant Gradient Header Panel */
+        .header-bar {
+            background: var(--primary-gradient);
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+        }
+
+        .header-bar .avatar-box {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            border: 2px solid white;
+        }
+
+        .header-info h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-info p { margin: 3px 0 0 0; font-size: 12px; opacity: 0.9; display: flex; align-items: center; gap: 5px; }
+
+        /* Dynamic Chat Messages Streaming Canvas */
+        .chat-space {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #ffffff;
+        }
+
+        /* Structural Layout for Message Rows */
+        .msg-row { display: flex; width: 100%; animation: fadeIn 0.3s ease-in-out; }
+        .msg-row.user { justify-content: flex-end; }
+        .msg-row.bot { justify-content: flex-start; }
+
+        /* Chat Bubbles Architecture */
+        .bubble {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+
+        .user .bubble {
+            background: var(--secondary-gradient);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot .bubble {
+            background: #f1f5f9;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Premium Asset Image Card framework */
+        .asset-card {
+            margin-top: 10px;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            text-align: center;
+            padding: 10px;
+        }
+
+        .asset-card img {
+            max-width: 100%;
+            max-height: 220px;
+            border-radius: 10px;
+            object-fit: cover;
+            transition: 0.3s ease;
+        }
+
+        .asset-card img:hover { transform: scale(1.02); }
+
+        /* WhatsApp Dynamic Hyperlink Buttons styling */
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            background: var(--whatsapp-color);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+            transition: 0.3s;
+        }
+
+        .whatsapp-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(37, 211, 102, 0.3); }
+
+        /* Bottom Input Deck Controller System */
+        .input-deck {
+            padding: 15px 20px;
+            background: #fff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-deck input {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
+            outline: none;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: 0.3s;
+        }
+
+        .input-deck input:focus {
+            border-color: #ff758c;
+            background: #fff;
+        }
+
+        .send-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(255, 117, 140, 0.2);
+        }
+
+        .send-btn:hover { transform: scale(1.05); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-window">
+    <!-- Header Component Deck -->
+    <div class="header-bar">
+        <div class="avatar-box"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="header-info">
+            <h3>Ecommerce RAG AI Studio </h3>
+            <p><i class="fa-solid fa-circle" style="color: #4ade80; font-size: 8px;"></i> Modern RAG Agent Active</p>
+        </div>
+    </div>
+
+    <!-- Live Messages Stream Board -->
+    <div class="chat-space" id="chatSpace">
+        <div class="msg-row bot">
+            <div class="bubble">
+                Hello! ✨ Welcome to our Ecommerce RAG Chatbot. Ask me anything about our <strong>Custom Canvas Paintings</strong>, <strong>Handmade Crochet items</strong>, or our specialized <strong>Saturday Training Classes</strong>! 🎨🧶
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Sender Control Deck Input Field -->
+    <div class="input-deck">
+        <input type="text" id="userInput" placeholder="Ask about paintings, crochet, or classes..." autocomplete="off">
+        <button class="send-btn" id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script>
+// Real-time AJAX Transaction Script Pipeline
+window.lastUserKeyword = "";
+const chatSpace = document.getElementById('chatSpace') || document.querySelector('[id*="chatspace"]');
+const userInput = document.getElementById('userInput') || document.querySelector('input[type="text"]');
+const sendbtn = document.getElementById('sendbtn') || document.querySelector('button');
+
+function appendMessage(text, side, incomingImages = [], whatsappUrl1 = null) {
+    if (!chatSpace) return;
+    
+    const row = document.createElement('div');
+    row.className = "msg-row " + side;
+
+    if (text && typeof text === 'string' && (text.includes('{"extras":') || text.includes('"works_available"'))) {
+        text = "Glad to show you our beautiful customized fine artwork and handcraft collections! Thank you for inquiring with us.";
+    }
+    if (text && typeof text === 'object') {
+        text = text.answer || text.text || text.response || "Here is the information you requested:";
+    }
+
+    if (side === 'user') {
+        let userTextLower = text.toLowerCase();
+        if (userTextLower.includes("class") || userTextLower.includes("saturday") || userTextLower.includes("training") || userTextLower.includes("contact")) {
+            window.lastUserKeyword = "crochet_class";
+        } else if (userTextLower.includes("bag") || userTextLower.includes("purse")) {
+            window.lastUserKeyword = "crochet_bag";
+        } else if (userTextLower.includes("dog") || userTextLower.includes("puppy") || userTextLower.includes("shark")) {
+            window.lastUserKeyword = "crochet_animal";
+        } else if (userTextLower.includes("crochet")) {
+            window.lastUserKeyword = "crochet_all";
+        } else if (userTextLower.includes("painting") || userTextLower.includes("canvas") || userTextLower.includes("art")) {
+            window.lastUserKeyword = "painting_all";
+        } else {
+            window.lastUserKeyword = "";
+        }
+        row.innerHTML = '<div class="bubble user_bubble">' + text + '</div>';
+    } else {
+        let imageList = [];
+        
+        // EXPERT FIX: Extract properly from the backend emitted image array structure safely
+        if (Array.isArray(incomingImages) && incomingImages.length > 0) {
+            incomingImages.forEach(img => {
+                if (img && img !== "null" && img !== "[object Object]") {
+                    imageList.push(img);
+                }
+            });
+        }
+
+        // Fallback UI generation logic if backend database returned no image metrics
+        if (imageList.length === 0) {
+            let activeKeyword = window.lastUserKeyword || "";
+            if (activeKeyword === "crochet_class") {
+                imageList = ["/static/crochet/crochet_class.jpg"];
+            } else if (activeKeyword === "crochet_bag") {
+                imageList = ["/static/crochet/crochet_bag1.jpg"];
+            } else if (activeKeyword === "painting_all") {
+                imageList = ["/static/painting/Acrylic_painting.jpg"];
+            }
+        }
+
+                // ==========================================
+        // AMAZON/FLIPKART STYLE PRODUCT GRID GRID LAYOUT
+        // ==========================================
+        let imagesHTML = "";
+        if (imageList.length > 0) {
+            // படங்களை பக்கவாட்டில் நேர்த்தியாக அடுக்க Flexbox Grid Container-ஐ உருவாக்குகிறது
+            imagesHTML += '<div class="product-image-grid" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%;">';
+            
+            imageList.slice(0, 3).forEach(src => {
+                imagesHTML += `
+                    <div class="product-card-wrapper" style="flex: 1 1 calc(33.33% - 8px); min-width: 75px; max-width: 100px; aspect-ratio: 1 / 1; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <img src="${src}" alt="Product View" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s;" onerror="this.closest('.product-card-wrapper').style.display='none';">
+                    </div>
+                `;
+            });
+            
+            imagesHTML += '</div>';
+        }
+
+        let targetWALink = "https://wa.me";
+        if (whatsappUrl1 && whatsappUrl1 !== "null" && whatsappUrl1 !== "[object Object]") {
+            targetWALink = whatsappUrl1;
+        }
+
+        let waButtonHTML = '<a href="' + targetWALink + '" target="_blank" class="whatsapp-btn" style="margin-top: 8px; width: 100%; text-align: center; display: block; background-color: #25D366; color: white; padding: 8px 0; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 14px;"><i class="fa-brands fa-whatsapp"></i> Chat / Order via whatsapp</a>';
+        
+        row.innerHTML = `
+            <div style="max-width: 80%; display: flex; flex-direction: column; align-items: flex-start;">
+                <div class="bubble bot_bubble" style="margin-bottom: 2px; width: 100%; text-align: left; white-space: pre-line;">${text}</div>
+                <div class="image-gallery-container" style="display: flex; flex-direction: column; width: 100%;">${imagesHTML}</div>
+                ${waButtonHTML}
+            </div>
+        `;
+    }
+    chatSpace.appendChild(row);
+    chatSpace.scrollTop = chatSpace.scrollHeight;
+}
+
+function dispatchPayload() {
+    if (!userInput) return;
+    const queryText = userInput.value.trim();
+    if (!queryText) return;
+
+    appendMessage(queryText, 'user');
+    userInput.value = "";
+
+    const payloadData = new FormData();
+    payloadData.append('message', queryText);
+
+    fetch('/ask', {
+        method: 'POST',
+        body: payloadData
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Network connection breakdown");
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === "success") {
+            let botAnswer = data.answer || "Here is the information you requested:";
+            // EXPERT FIX: Extract explicitly from the array property name 'image_urls'
+            let incomingImgs = data.image_urls || [];
+            let incomingWA = data.whatsapp_url || null;
+            
+            appendMessage(botAnswer, 'bot', incomingImgs, incomingWA);
+        } else {
+            appendMessage("Sorry, an internal error occurred on the server.", 'bot');
+        }
+    })
+    .catch(error => {
+        console.error("Routing Error:", error);
+        appendMessage("Sorry, an internal error occurred on the server.", 'bot');
+    });
+}
+
+if (sendbtn) sendbtn.addEventListener('click', dispatchPayload);
+if (userInput) {
+    userInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') dispatchPayload();
+    });
+}
+</script>
