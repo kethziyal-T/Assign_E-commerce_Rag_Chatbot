@@ -29,7 +29,7 @@ def serve_shop_images(subpath):
 embeddings = None
 db = None
 llm = None
-PUBLIC_APP_URL = "https://cloundinary.com"
+PUBLIC_APP_URL = os.environ.get("PUBLIC_APP_URL", "").rstrip("/")
 try:
     if os.path.exists(config.DB_DIR):
         embeddings = GoogleGenerativeAIEmbeddings(
@@ -142,7 +142,13 @@ def ask():
             
             try:
                 if llm is not None:
-                    system_prompt = f"You are an expert shop assistant. Answer the user's question using ONLY the provided context.\nContext:\n{context}\n\nQuestion: {user_query}\nAnswer:"
+                    system_prompt = (
+    f"You are a strict shop assistant. Answer ONLY using the Context below. "
+    f"If the exact answer, price, or product is not in the Context, reply ONLY: "
+    f"'Sorry, I don't have details on that right now.' Do NOT guess.\n\n"
+    f"Context:\n{context}\n\nQuestion: {user_query}\nAnswer:"
+)
+
                     ai_response = llm.invoke(system_prompt)
                     final_answer = ai_response.content
                 else:
@@ -177,7 +183,7 @@ def ask():
 # =====================================================================
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN", config.WHATSAPP_TOKEN)
 PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID", config.PHONE_NUMBER_ID)
-VERIFY_TOKEN = os.environ.get("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "my_secure_token_123")
+VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN", "my_secure_token_123")
 
 @app.route('/webhook', methods=['GET'])
 def verify_whatsapp_webhook_gateway():
@@ -227,6 +233,7 @@ def handle_incoming_whatsapp():
                         
                         try:
                             # STEP 1: Execute Handwritten FAQ lookup logic
+                                             
                             faq_match = utils.resolve_handwritten_faq(customer_query)
                             rag_reply = ""
                             image_attachment = None
@@ -235,8 +242,8 @@ def handle_incoming_whatsapp():
                                 rag_reply = faq_match.get("answer", "")
                                 raw_image_path = faq_match.get("image_path")
                                 if raw_image_path and str(raw_image_path) != "None":
-                                    clean_img = str(raw_image_path).lstrip("/") 
-                                    image_attachment = f"{PUBLIC_APP_URL}/static/{clean_img}" if PUBLIC_APP_URL else None 
+                                    clean_img = str(raw_image_path).lstrip("/")
+                                    image_attachment = f"{PUBLIC_APP_URL}/static/{clean_img}" if PUBLIC_APP_URL else None
                             else:
                                 # STEP 2: Fallback to category-filtered RAG via ChromaDB
                                 query_lower = customer_query.lower()
@@ -253,16 +260,20 @@ def handle_incoming_whatsapp():
                                     context = "\n".join([doc.page_content for doc in search_results])
                                     meta = getattr(search_results[0], 'metadata', {})
                                     img_name = meta.get("image_name")
+                                    img_cat = meta.get("category", target_category)
                                     if img_name:
-                                        clean_img=str(img_name).lstrip("/")
+                                        clean_img = str(img_name).lstrip("/")
+                                        if "/" not in clean_img:
+                                            clean_img = f"{img_cat}/{clean_img}"
                                         image_attachment = f"{PUBLIC_APP_URL}/static/{clean_img}" if PUBLIC_APP_URL else None 
                                     
                                     if llm is not None:
                                         system_prompt = (
-    f"You are a strict shop assistant. Answer ONLY using the Context below. "
-    f"If the exact answer, price, or product is not in the Context, reply ONLY: "
-    f"'Sorry, I don't have details on that right now.' Do NOT guess.\n\n"
-    f"Context:\n{context}\n\nQuestion: {customer_query}\nAnswer:")
+                                            f"You are a strict shop assistant. Answer ONLY using the Context below. "
+                                            f"If the exact answer, price, or product is not in the Context, reply ONLY: "
+                                            f"'Sorry, I don't have details on that right now.' Do NOT guess.\n\n"
+                                            f"Context:\n{context}\n\nQuestion: {customer_query}\nAnswer:"
+                                        )
                                         ai_response = llm.invoke(system_prompt)
                                         rag_reply = ai_response.content
                                     else:
@@ -348,9 +359,9 @@ def send_live_whatsapp_reply(to_number, text_content, image_url=None):
             print(f"❌ Failed to send image to Meta: {img_err}")
 
 # ==============================================================================
-# 2. PRODUCTION & LOCAL SERVER BOOT ENGINE
+# 2. PRODUCTION & LOCAL SERVER BOOT ENGINE & Cloud Run uses Port 8080 by default
 # ==============================================================================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     print(f"🚀 Chatbot Server Starting on Port {port} with Public URL: {PUBLIC_APP_URL}")
     app.run(host="0.0.0.0", port=port, debug=False)
